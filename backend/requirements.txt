@@ -1,0 +1,23 @@
+# FastAPI framework
+fastapi==0.110.0
+uvicorn[standard]==0.27.1
+
+# Database
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9   # Use if PostgreSQL
+alembic==1.13.1
+
+# Authentication & Security
+argon2-cffi==23.1.0
+python-jose==3.3.0      # JWT handling
+passlib==1.7.4          # Optional wrapper for hashing
+
+# Validation
+pydantic==2.6.1
+email-validator==2.1.0
+
+# Environment config
+python-dotenv==1.0.1
+
+# UUID support
+uuid==1.30

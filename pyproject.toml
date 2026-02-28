@@ -1,0 +1,20 @@
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "auth: Authentication related tests",
+    "rbac: Role-based access control tests",
+    "tenant: Multi-tenant tests",
+    "middleware: Middleware tests",
+    "schema: Schema validation tests",
+    "slow: Slow running tests",
+]

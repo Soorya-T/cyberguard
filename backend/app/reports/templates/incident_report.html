@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Arial; margin: 40px; }
+h1, h2 { color: #1f2937; }
+.section { margin-bottom: 30px; }
+.label { font-weight: bold; }
+.header { border-bottom: 2px solid #ccc; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>CyberGuard Incident Report</h1>
+<p><b>Organization:</b> {{ organization_name }}</p>
+<p><b>Incident ID:</b> {{ incident.id }}</p>
+<p><b>Generated At:</b> {{ generated_at }}</p>
+</div>
+
+<div class="section">
+<h2>Incident Summary</h2>
+<p><b>Source User:</b> {{ incident.src_user }}</p>
+<p><b>Destination User:</b> {{ incident.dst_user }}</p>
+<p><b>Subject:</b> {{ incident.subject }}</p>
+<p><b>IP Address:</b> {{ incident.ip_address }}</p>
+<p><b>Classification:</b> {{ incident.classification }}</p>
+<p><b>Risk Score:</b> {{ incident.risk_score }}</p>
+<p><b>Status:</b> {{ incident.status }}</p>
+</div>
+
+<div class="section">
+<h2>Timeline Metrics</h2>
+<p><b>Detection Latency (sec):</b> {{ detection_latency }}</p>
+<p><b>Analyst Response Time (sec):</b> {{ analyst_response_time }}</p>
+<p><b>Closure Duration (sec):</b> {{ closure_duration }}</p>
+</div>
+
+<div class="section">
+<h2>SLA Details</h2>
+<p><b>SLA Met:</b> {{ "Yes" if sla_metrics.sla_met else "No" }}</p>
+<p><b>SLA Threshold (hours):</b> {{ sla_metrics.sla_threshold_hours }}</p>
+<p><b>Elapsed Time (hours):</b> {{ "%.2f"|format(sla_metrics.elapsed_hours) if sla_metrics.elapsed_hours else "N/A" }}</p>
+<p><b>SLA Remaining (hours):</b> {{ "%.2f"|format(sla_metrics.sla_remaining_hours) if sla_metrics.sla_remaining_hours else "N/A" }}</p>
+</div>
+
+<div class="section">
+<h2>Analyst Notes</h2>
+<p>{{ incident.explanation }}</p>
+</div>
+
+</body>
+</html>

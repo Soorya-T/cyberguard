@@ -1,0 +1,14 @@
+[
+  {
+    "signal": "NEWSLETTER_SUBSCRIPTION",
+    "score": 5,
+    "severity": "LOW",
+    "reason": "User subscribed to mailing list"
+  },
+  {
+    "signal": "KNOWN_SENDER",
+    "score": 0,
+    "severity": "LOW",
+    "reason": "Sender exists in trusted contacts"
+  }
+]

@@ -19,6 +19,7 @@ from pydantic import ValidationError as PydanticValidationError
 from app.schemas.ocsf.email_event import EmailEvent
 from app.models.incident import Incident
 from app.services.pod_b_client import analyze_with_pod_b
+from app.core.enums import IncidentStatus
 
 
 # =============================================
@@ -248,7 +249,7 @@ class TestPodBClient:
 
     @pytest.mark.asyncio
     async def test_analyze_with_pod_b_raises_on_http_error(self):
-        """Pod B returning an HTTP error should propagate via raise_for_status."""
+        """Pod B returning an HTTP error should raise after exhausting retries."""
         import httpx
         from unittest.mock import MagicMock
 
@@ -265,7 +266,7 @@ class TestPodBClient:
         mock_client.__aexit__ = AsyncMock(return_value=False)
 
         with patch("app.services.pod_b_client.httpx.AsyncClient", return_value=mock_client):
-            with pytest.raises(httpx.HTTPStatusError):
+            with pytest.raises(Exception, match="Pod B unavailable after retries"):
                 await analyze_with_pod_b({"src_user": "a@b.com"})
 
 
@@ -277,14 +278,15 @@ class TestPodBClient:
 class TestIncidentModel:
     """Test the Incident ORM model."""
 
-    def test_incident_creation(self, db_session):
+    def test_incident_creation(self, db_session, sample_organization):
         """Creating an Incident should persist all fields."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="alice@corp.com",
             dst_user="bob@corp.com",
             subject="Test Subject",
             ip_address="10.0.0.1",
-            status="PROCESSING",
+            status=IncidentStatus.PROCESSING,
         )
         db_session.add(incident)
         db_session.commit()
@@ -295,11 +297,12 @@ class TestIncidentModel:
         assert incident.dst_user == "bob@corp.com"
         assert incident.subject == "Test Subject"
         assert incident.ip_address == "10.0.0.1"
-        assert incident.status == "PROCESSING"
+        assert incident.status == IncidentStatus.PROCESSING
 
-    def test_incident_default_status(self, db_session):
+    def test_incident_default_status(self, db_session, sample_organization):
         """Default status should be RECEIVED."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com",
             dst_user="c@d.com",
             subject="Default Status",
@@ -311,9 +314,10 @@ class TestIncidentModel:
 
         assert incident.status == "RECEIVED"
 
-    def test_incident_uuid_auto_generated(self, db_session):
+    def test_incident_uuid_auto_generated(self, db_session, sample_organization):
         """Incident id should be auto-generated as a UUID string."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com",
             dst_user="c@d.com",
             subject="UUID Test",
@@ -324,12 +328,16 @@ class TestIncidentModel:
         db_session.refresh(incident)
 
         # Should be a valid UUID string
-        parsed = uuid.UUID(incident.id)
-        assert str(parsed) == incident.id
+        assert incident.id is not None
+        # Convert to string and verify it's a valid UUID
+        incident_id_str = str(incident.id)
+        parsed = uuid.UUID(incident_id_str)
+        assert str(parsed) == incident_id_str
 
-    def test_incident_created_at_auto_set(self, db_session):
+    def test_incident_created_at_auto_set(self, db_session, sample_organization):
         """created_at should be automatically set on creation."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com",
             dst_user="c@d.com",
             subject="Timestamp Test",
@@ -342,9 +350,10 @@ class TestIncidentModel:
         assert incident.created_at is not None
         assert isinstance(incident.created_at, datetime)
 
-    def test_incident_nullable_fields(self, db_session):
+    def test_incident_nullable_fields(self, db_session, sample_organization):
         """risk_score, classification, explanation, processed_at should be nullable."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com",
             dst_user="c@d.com",
             subject="Nullable Test",
@@ -359,14 +368,15 @@ class TestIncidentModel:
         assert incident.explanation is None
         assert incident.processed_at is None
 
-    def test_incident_verdict_storage(self, db_session):
+    def test_incident_verdict_storage(self, db_session, sample_organization):
         """Storing Pod B verdict fields should persist correctly."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com",
             dst_user="c@d.com",
             subject="Verdict Test",
             ip_address="1.2.3.4",
-            status="PROCESSING",
+            status=IncidentStatus.PROCESSING,
         )
         db_session.add(incident)
         db_session.commit()
@@ -375,7 +385,7 @@ class TestIncidentModel:
         incident.risk_score = 92
         incident.classification = "MALWARE"
         incident.explanation = "Known malware signature detected"
-        incident.status = "REVIEW"
+        incident.status = IncidentStatus.REVIEW
         incident.processed_at = datetime.now(UTC)
         db_session.commit()
         db_session.refresh(incident)
@@ -383,7 +393,7 @@ class TestIncidentModel:
         assert incident.risk_score == 92
         assert incident.classification == "MALWARE"
         assert incident.explanation == "Known malware signature detected"
-        assert incident.status == "REVIEW"
+        assert incident.status == IncidentStatus.REVIEW
         assert incident.processed_at is not None
 
 
@@ -412,11 +422,15 @@ class TestIngestionEndpoint:
     }
 
     @patch("app.routes.ingestion_routes.analyze_with_pod_b", new_callable=AsyncMock)
-    def test_ingest_valid_event_returns_200(self, mock_pod_b, client, db_session):
+    def test_ingest_valid_event_returns_200(self, mock_pod_b, client, db_session, sample_organization):
         """Valid OCSF event should return 200 with incident_id and status."""
         mock_pod_b.return_value = self.POD_B_VERDICT
 
-        response = client.post("/api/v1/ingest", json=self.VALID_PAYLOAD)
+        response = client.post(
+            "/api/v1/ingest",
+            json=self.VALID_PAYLOAD,
+            headers={"X-Tenant-ID": str(sample_organization.id)}
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -424,12 +438,16 @@ class TestIngestionEndpoint:
         assert data["status"] == "REVIEW"
 
     @patch("app.routes.ingestion_routes.analyze_with_pod_b", new_callable=AsyncMock)
-    def test_ingest_stores_incident_in_db(self, mock_pod_b, client, db_session):
+    def test_ingest_stores_incident_in_db(self, mock_pod_b, client, db_session, sample_organization):
         """After ingestion, the incident should be persisted in the database."""
         mock_pod_b.return_value = self.POD_B_VERDICT
 
-        response = client.post("/api/v1/ingest", json=self.VALID_PAYLOAD)
-        incident_id = response.json()["incident_id"]
+        response = client.post(
+            "/api/v1/ingest",
+            json=self.VALID_PAYLOAD,
+            headers={"X-Tenant-ID": str(sample_organization.id)}
+        )
+        incident_id = uuid.UUID(response.json()["incident_id"])
 
         incident = db_session.query(Incident).filter_by(id=incident_id).first()
         assert incident is not None
@@ -439,26 +457,34 @@ class TestIngestionEndpoint:
         assert incident.ip_address == "203.0.113.5"
 
     @patch("app.routes.ingestion_routes.analyze_with_pod_b", new_callable=AsyncMock)
-    def test_ingest_stores_verdict_from_pod_b(self, mock_pod_b, client, db_session):
+    def test_ingest_stores_verdict_from_pod_b(self, mock_pod_b, client, db_session, sample_organization):
         """Pod B verdict (risk_score, classification, explanation) should be stored."""
         mock_pod_b.return_value = self.POD_B_VERDICT
 
-        response = client.post("/api/v1/ingest", json=self.VALID_PAYLOAD)
-        incident_id = response.json()["incident_id"]
+        response = client.post(
+            "/api/v1/ingest",
+            json=self.VALID_PAYLOAD,
+            headers={"X-Tenant-ID": str(sample_organization.id)}
+        )
+        incident_id = uuid.UUID(response.json()["incident_id"])
 
         incident = db_session.query(Incident).filter_by(id=incident_id).first()
         assert incident.risk_score == 85
         assert incident.classification == "PHISHING"
         assert incident.explanation == "Suspicious sender domain"
-        assert incident.status == "REVIEW"
+        assert incident.status == IncidentStatus.REVIEW
         assert incident.processed_at is not None
 
     @patch("app.routes.ingestion_routes.analyze_with_pod_b", new_callable=AsyncMock)
-    def test_ingest_calls_pod_b_with_event_data(self, mock_pod_b, client, db_session):
+    def test_ingest_calls_pod_b_with_event_data(self, mock_pod_b, client, db_session, sample_organization):
         """The ingestion endpoint should call Pod B with the event payload."""
         mock_pod_b.return_value = self.POD_B_VERDICT
 
-        client.post("/api/v1/ingest", json=self.VALID_PAYLOAD)
+        client.post(
+            "/api/v1/ingest",
+            json=self.VALID_PAYLOAD,
+            headers={"X-Tenant-ID": str(sample_organization.id)}
+        )
 
         mock_pod_b.assert_called_once()
         call_args = mock_pod_b.call_args[0][0]

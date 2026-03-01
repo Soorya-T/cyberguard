@@ -47,8 +47,8 @@ class TestIncidentStatusEnum:
         assert IncidentStatus.CLOSED == "CLOSED"
 
     def test_enum_has_exactly_three_states(self):
-        """IncidentStatus should have exactly 3 lifecycle states."""
-        assert len(IncidentStatus) == 3
+        """IncidentStatus should have exactly 5 lifecycle states."""
+        assert len(IncidentStatus) == 5
 
     def test_enum_values_are_strings(self):
         """All IncidentStatus values should be strings."""
@@ -385,9 +385,10 @@ class TestSLABreachDetection:
 class TestIncidentLifecycleDB:
     """Test incident lifecycle state changes in the database."""
 
-    def test_incident_status_update_open_to_processing(self, db_session):
+    def test_incident_status_update_open_to_processing(self, db_session, sample_organization):
         """Incident status can be updated from RECEIVED to PROCESSING."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com",
             dst_user="c@d.com",
             subject="Lifecycle Test",
@@ -396,46 +397,49 @@ class TestIncidentLifecycleDB:
         db_session.add(incident)
         db_session.commit()
 
-        assert incident.status == "RECEIVED"
+        assert incident.status == IncidentStatus.RECEIVED
 
-        incident.status = "PROCESSING"
+        incident.status = IncidentStatus.PROCESSING
         db_session.commit()
         db_session.refresh(incident)
 
-        assert incident.status == "PROCESSING"
+        assert incident.status == IncidentStatus.PROCESSING
 
-    def test_incident_status_update_to_review(self, db_session):
+    def test_incident_status_update_to_review(self, db_session, sample_organization):
         """Incident status can be updated to REVIEW after processing."""
         incident = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com",
             dst_user="c@d.com",
             subject="Review Test",
             ip_address="1.2.3.4",
-            status="PROCESSING",
+            status=IncidentStatus.PROCESSING,
         )
         db_session.add(incident)
         db_session.commit()
 
-        incident.status = "REVIEW"
+        incident.status = IncidentStatus.REVIEW
         incident.processed_at = datetime.now(UTC)
         db_session.commit()
         db_session.refresh(incident)
 
-        assert incident.status == "REVIEW"
+        assert incident.status == IncidentStatus.REVIEW
         assert incident.processed_at is not None
 
-    def test_multiple_incidents_independent_status(self, db_session):
+    def test_multiple_incidents_independent_status(self, db_session, sample_organization):
         """Multiple incidents should maintain independent lifecycle states."""
         inc1 = Incident(
+            tenant_id=sample_organization.id,
             src_user="a@b.com", dst_user="c@d.com",
-            subject="Inc 1", ip_address="1.1.1.1", status="PROCESSING",
+            subject="Inc 1", ip_address="1.1.1.1", status=IncidentStatus.PROCESSING,
         )
         inc2 = Incident(
+            tenant_id=sample_organization.id,
             src_user="e@f.com", dst_user="g@h.com",
-            subject="Inc 2", ip_address="2.2.2.2", status="REVIEW",
+            subject="Inc 2", ip_address="2.2.2.2", status=IncidentStatus.REVIEW,
         )
         db_session.add_all([inc1, inc2])
         db_session.commit()
 
-        assert inc1.status == "PROCESSING"
-        assert inc2.status == "REVIEW"
+        assert inc1.status == IncidentStatus.PROCESSING
+        assert inc2.status == IncidentStatus.REVIEW

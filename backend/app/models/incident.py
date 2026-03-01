@@ -22,7 +22,7 @@ class Incident(Base):
     subject = Column(String, nullable=False)
     ip_address = Column(String, nullable=False)
 
-    status = Column(Enum(IncidentStatus), default=IncidentStatus.OPEN)
+    status = Column(Enum(IncidentStatus), default=IncidentStatus.RECEIVED)
 
     risk_score = Column(Integer, nullable=True)
     classification = Column(String, nullable=True)

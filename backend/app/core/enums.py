@@ -11,6 +11,8 @@ from enum import Enum
 class IncidentStatus(str, Enum):
     """Lifecycle statuses for security incidents."""
 
+    RECEIVED = "RECEIVED"
     OPEN = "OPEN"
+    PROCESSING = "PROCESSING"
     REVIEW = "REVIEW"
     CLOSED = "CLOSED"

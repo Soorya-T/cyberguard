@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from datetime import datetime, UTC
 from uuid import UUID
 import logging
+from typing import Optional
 
 from app.schemas.ocsf.email_event import EmailEvent
 from app.models.incident import Incident
@@ -19,10 +20,14 @@ DEFAULT_TENANT_ID = UUID("00000000-0000-0000-0000-000000000000")
 @router.post("/ingest")
 async def ingest_event(
     event: EmailEvent,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID")
 ):
-    # Use default tenant for now
-    tenant_id = DEFAULT_TENANT_ID
+    # Use tenant_id from header if provided, otherwise use default
+    if x_tenant_id:
+        tenant_id = UUID(x_tenant_id)
+    else:
+        tenant_id = DEFAULT_TENANT_ID
     
     # 1️⃣ Store initial incident with default tenant
     incident = Incident(

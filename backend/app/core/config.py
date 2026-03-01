@@ -2,253 +2,206 @@
 Application Configuration Module
 ================================
 
-Centralized configuration management using Pydantic Settings.
+Unified configuration for:
 
-Security Features:
-- Environment variable validation
-- No hardcoded secrets (production-safe)
-- CORS configuration
-- Rate limiting settings
-- Token security settings
+- Pod A: Core app, DB, Auth, Security
+- Pod B: Phishing scoring engine, signals, parser, performance
 
-IMPORTANT:
-- SECRET_KEY MUST be set via environment variable in production
-- Never commit .env files with real secrets
+Security-first defaults.
+All sensitive values must come from environment variables in production.
 """
 
-import os
 from typing import List, Optional
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Centralized application configuration with security-first defaults.
-    
-    All sensitive values must be provided via environment variables.
-    Default values are provided only for local development.
-    """
 
-    # ==========================
-    # Application Settings
-    # ==========================
-    APP_NAME: str = Field(
-        default="CyberGuard",
-        description="Application name"
-    )
-    APP_VERSION: str = Field(
-        default="1.0.0",
-        description="Application version"
-    )
-    DEBUG: bool = Field(
-        default=False,
-        description="Debug mode - disable in production"
-    )
-    ENVIRONMENT: str = Field(
-        default="development",
-        description="Environment: development, staging, production"
-    )
+    # ======================================================================
+    # APPLICATION SETTINGS
+    # ======================================================================
 
-    # ==========================
-    # Database Configuration
-    # ==========================
+    APP_NAME: str = Field(default="CyberGuard")
+    APP_VERSION: str = Field(default="2.0.0")
+    DEBUG: bool = Field(default=False)
+    ENVIRONMENT: str = Field(default="development")
+
+    # ======================================================================
+    # DATABASE SETTINGS (Pod A)
+    # ======================================================================
+
     DATABASE_URL: str = Field(
-        default="postgresql://postgres:postgres@localhost:5433/cyberguard_db",
-        description="PostgreSQL connection string"
+        default="postgresql://postgres:postgres@localhost:5433/cyberguard_db"
     )
-    DB_POOL_SIZE: int = Field(
-        default=5,
-        description="Database connection pool size"
-    )
-    DB_MAX_OVERFLOW: int = Field(
-        default=10,
-        description="Maximum overflow connections"
-    )
-    DB_POOL_TIMEOUT: int = Field(
-        default=30,
-        description="Pool timeout in seconds"
-    )
-    DB_POOL_RECYCLE: int = Field(
-        default=1800,
-        description="Recycle connections after N seconds"
-    )
+    DB_POOL_SIZE: int = Field(default=5)
+    DB_MAX_OVERFLOW: int = Field(default=10)
+    DB_POOL_TIMEOUT: int = Field(default=30)
+    DB_POOL_RECYCLE: int = Field(default=1800)
 
-    # ==========================
-    # JWT Security Configuration
-    # ==========================
-    SECRET_KEY: str = Field(
-        default="",  # Empty default - must be set via environment
-        description="Secret key used to sign JWT tokens (REQUIRED in production)"
-    )
-    ALGORITHM: str = Field(
-        default="HS256",
-        description="JWT signing algorithm"
-    )
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
-        default=15,
-        description="Access token expiration time in minutes"
-    )
-    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
-        default=7,
-        description="Refresh token expiration time in days"
-    )
-    ISSUER: str = Field(
-        default="cyberguard-auth",
-        description="Token issuer identifier"
-    )
-    AUDIENCE: str = Field(
-        default="cyberguard-api",
-        description="Token audience"
-    )
+    # ======================================================================
+    # JWT SECURITY (Pod A)
+    # ======================================================================
 
-    # ==========================
-    # Security Settings
-    # ==========================
-    MAX_LOGIN_ATTEMPTS: int = Field(
-        default=5,
-        description="Maximum failed login attempts before lockout"
-    )
-    LOCKOUT_DURATION_MINUTES: int = Field(
-        default=30,
-        description="Account lockout duration in minutes (0 = permanent)"
-    )
-    PASSWORD_MIN_LENGTH: int = Field(
-        default=8,
-        description="Minimum password length"
-    )
-    PASSWORD_REQUIRE_UPPERCASE: bool = Field(
-        default=True,
-        description="Require uppercase letters in password"
-    )
-    PASSWORD_REQUIRE_LOWERCASE: bool = Field(
-        default=True,
-        description="Require lowercase letters in password"
-    )
-    PASSWORD_REQUIRE_DIGIT: bool = Field(
-        default=True,
-        description="Require digits in password"
-    )
-    PASSWORD_REQUIRE_SPECIAL: bool = Field(
-        default=True,
-        description="Require special characters in password"
-    )
+    SECRET_KEY: str = Field(default="")
+    ALGORITHM: str = Field(default="HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7)
+    ISSUER: str = Field(default="cyberguard-auth")
+    AUDIENCE: str = Field(default="cyberguard-api")
 
-    # ==========================
-    # CORS Configuration
-    # ==========================
+    # ======================================================================
+    # SECURITY POLICY (Pod A)
+    # ======================================================================
+
+    MAX_LOGIN_ATTEMPTS: int = Field(default=5)
+    LOCKOUT_DURATION_MINUTES: int = Field(default=30)
+
+    PASSWORD_MIN_LENGTH: int = Field(default=8)
+    PASSWORD_REQUIRE_UPPERCASE: bool = Field(default=True)
+    PASSWORD_REQUIRE_LOWERCASE: bool = Field(default=True)
+    PASSWORD_REQUIRE_DIGIT: bool = Field(default=True)
+    PASSWORD_REQUIRE_SPECIAL: bool = Field(default=True)
+
+    # ======================================================================
+    # CORS (Pod A)
+    # ======================================================================
+
     CORS_ORIGINS: str = Field(
-        default="http://localhost:3000,http://localhost:8080",
-        description="Allowed CORS origins (comma-separated)"
+        default="http://localhost:3000,http://localhost:8080"
     )
-    CORS_ALLOW_CREDENTIALS: bool = Field(
-        default=True,
-        description="Allow credentials in CORS requests"
-    )
-    CORS_ALLOW_METHODS: str = Field(
-        default="GET,POST,PUT,DELETE,PATCH,OPTIONS",
-        description="Allowed HTTP methods (comma-separated)"
-    )
+    CORS_ALLOW_CREDENTIALS: bool = Field(default=True)
+    CORS_ALLOW_METHODS: str = Field(default="GET,POST,PUT,DELETE,PATCH,OPTIONS")
     CORS_ALLOW_HEADERS: str = Field(
-        default="Authorization,Content-Type,Accept,Origin,X-Requested-With",
-        description="Allowed headers (comma-separated)"
-    )
-
-    # ==========================
-    # Rate Limiting
-    # ==========================
-    RATE_LIMIT_ENABLED: bool = Field(
-        default=True,
-        description="Enable rate limiting"
-    )
-    RATE_LIMIT_REQUESTS: int = Field(
-        default=100,
-        description="Maximum requests per window"
-    )
-    RATE_LIMIT_WINDOW_SECONDS: int = Field(
-        default=60,
-        description="Rate limit window in seconds"
-    )
-    LOGIN_RATE_LIMIT: int = Field(
-        default=5,
-        description="Maximum login attempts per minute per IP"
-    )
-
-    # ==========================
-    # Logging
-    # ==========================
-    LOG_LEVEL: str = Field(
-        default="INFO",
-        description="Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL"
-    )
-    LOG_FORMAT: str = Field(
-        default="json",
-        description="Log format: json or text"
+        default="Authorization,Content-Type,Accept,Origin,X-Requested-With"
     )
 
     @property
-    def cors_origins_list(self) -> List[str]:
-        """Parse CORS origins from comma-separated string."""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+    def CORS_ORIGINS_LIST(self) -> List[str]:
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
-    def cors_methods_list(self) -> List[str]:
-        """Parse CORS methods from comma-separated string."""
-        return [method.strip() for method in self.CORS_ALLOW_METHODS.split(",") if method.strip()]
+    def CORS_METHODS_LIST(self) -> List[str]:
+        return [m.strip() for m in self.CORS_ALLOW_METHODS.split(",") if m.strip()]
 
     @property
-    def cors_headers_list(self) -> List[str]:
-        """Parse CORS headers from comma-separated string."""
-        return [header.strip() for header in self.CORS_ALLOW_HEADERS.split(",") if header.strip()]
+    def CORS_HEADERS_LIST(self) -> List[str]:
+        return [h.strip() for h in self.CORS_ALLOW_HEADERS.split(",") if h.strip()]
 
-    @field_validator("SECRET_KEY")
-    @classmethod
-    def validate_secret_key(cls, v: str, info) -> str:
-        """Validate that SECRET_KEY is set in production."""
-        environment = info.data.get("ENVIRONMENT", "development")
-        
-        # In production, SECRET_KEY must be set and be sufficiently long
-        if environment == "production":
-            if not v:
-                raise ValueError(
-                    "SECRET_KEY environment variable is REQUIRED in production. "
-                    "Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
-                )
-            if len(v) < 32:
-                raise ValueError(
-                    "SECRET_KEY must be at least 32 characters in production. "
-                    "Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
-                )
-        
-        # For development, generate a warning key if not set
-        if not v:
-            import secrets
-            v = secrets.token_urlsafe(32)
-            import warnings
-            warnings.warn(
-                "SECRET_KEY not set. Using auto-generated key for development. "
-                "Set SECRET_KEY environment variable for production.",
-                UserWarning
-            )
-        
-        return v
+    # ======================================================================
+    # RATE LIMITING (Unified)
+    # ======================================================================
+
+    RATE_LIMIT_ENABLED: bool = Field(default=True)
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = Field(default=60)
+    RATE_LIMIT_BURST: int = Field(default=10)
+
+    # ======================================================================
+    # LOGGING (Unified)
+    # ======================================================================
+
+    LOG_LEVEL: str = Field(default="INFO")
+    LOG_FORMAT: str = Field(default="json")
+    LOG_INCLUDE_TIMESTAMP: bool = Field(default=True)
+
+    # ======================================================================
+    # POD B – SCORING THRESHOLDS
+    # ======================================================================
+
+    PHISHING_THRESHOLD: int = Field(default=50, ge=0, le=100)
+    SUSPICIOUS_THRESHOLD: int = Field(default=20, ge=0, le=100)
+    MAX_TOTAL_SCORE: int = Field(default=100, ge=0, le=100)
+
+    # ======================================================================
+    # POD B – PARSER SETTINGS
+    # ======================================================================
+
+    MAX_EMAIL_SIZE_BYTES: int = Field(default=25 * 1024 * 1024)
+    PARSE_TIMEOUT_SECONDS: int = Field(default=30)
+    MAX_LINKS_EXTRACT: int = Field(default=1000)
+    MAX_ATTACHMENTS_PROCESS: int = Field(default=50)
+
+    # ======================================================================
+    # POD B – SIGNAL SETTINGS
+    # ======================================================================
+
+    SIGNAL_TIMEOUT_SECONDS: int = Field(default=5)
+    ENABLE_PARALLEL_SIGNALS: bool = Field(default=True)
+
+    DOMAIN_SPOOF_SIMILARITY_THRESHOLD: float = Field(default=0.80)
+    DOMAIN_SPOOF_SCORE: int = Field(default=30)
+
+    URGENCY_BASE_SCORE: int = Field(default=20)
+    URGENCY_PER_KEYWORD_SCORE: int = Field(default=5)
+    URGENCY_MAX_SCORE: int = Field(default=40)
+
+    SUSPICIOUS_TLD_BASE_SCORE: int = Field(default=20)
+    SUSPICIOUS_TLD_PER_DOMAIN_SCORE: int = Field(default=5)
+    SUSPICIOUS_TLD_MAX_SCORE: int = Field(default=35)
+
+    DOUBLE_EXTENSION_SCORE: int = Field(default=25)
+    HIGH_RISK_EXTENSION_SCORE: int = Field(default=30)
+    MEDIUM_RISK_EXTENSION_SCORE: int = Field(default=15)
+    ATTACHMENT_MAX_SCORE: int = Field(default=50)
+
+    REPLY_MISMATCH_SCORE: int = Field(default=25)
+
+    # ======================================================================
+    # PERFORMANCE (Pod B)
+    # ======================================================================
+
+    ENABLE_CACHING: bool = Field(default=True)
+    CACHE_TTL_SECONDS: int = Field(default=3600)
+    CACHE_MAX_SIZE: int = Field(default=10000)
+
+    # ======================================================================
+    # VALIDATORS
+    # ======================================================================
 
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:
-        """Validate environment value."""
         allowed = {"development", "staging", "production", "testing"}
         if v.lower() not in allowed:
-            raise ValueError(f"ENVIRONMENT must be one of: {allowed}")
+            raise ValueError(f"ENVIRONMENT must be one of {allowed}")
         return v.lower()
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v: str, info) -> str:
+        environment = info.data.get("ENVIRONMENT", "development")
+
+        if environment == "production":
+            if not v or len(v) < 32:
+                raise ValueError(
+                    "SECRET_KEY must be set and at least 32 characters in production"
+                )
+
+        if not v:
+            import secrets
+            v = secrets.token_urlsafe(32)
+
+        return v
+
+    @model_validator(mode="after")
+    def validate_thresholds(self):
+        if self.PHISHING_THRESHOLD <= self.SUSPICIOUS_THRESHOLD:
+            raise ValueError(
+                "PHISHING_THRESHOLD must be greater than SUSPICIOUS_THRESHOLD"
+            )
+        return self
+
+    # ======================================================================
+    # Pydantic Config
+    # ======================================================================
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore"  # Ignore extra env vars
+        extra="ignore",
     )
 
 
-# Global settings instance
+# Single global instance
 settings = Settings()

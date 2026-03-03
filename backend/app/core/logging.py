@@ -234,11 +234,11 @@ class SecurityLogger:
         )
 
     # Alias methods for test compatibility
-    def log_login_success(self, user_id: str, tenant_id: str = None, ip: str = None):
-        self.login_success(user_id, tenant_id or "", ip or "")
+    def log_login_success(self, user_id: str, tenant_id: str = None, ip: str = None, ip_address: str = None):
+        self.login_success(user_id, tenant_id or "", ip or ip_address or "")
 
-    def log_login_failure(self, email: str, ip: str = None, reason: str = None):
-        self.login_failure(email, ip or "", reason or "unknown")
+    def log_login_failure(self, email: str, ip: str = None, reason: str = None, ip_address: str = None):
+        self.login_failure(email, ip or ip_address or "", reason or "unknown")
 
     def log_token_refresh(self, user_id: str, tenant_id: str = None):
         self.log.info(
@@ -256,12 +256,13 @@ class SecurityLogger:
             tenant_id=tenant_id,
         )
 
-    def log_token_invalid(self, user_id: str = None, reason: str = None):
+    def log_token_invalid(self, user_id: str = None, reason: str = None, ip_address: str = None):
         self.log.warning(
             "token_invalid",
             event_type="TOKEN_INVALID",
             user_id=user_id,
             reason=reason,
+            ip_address=ip_address,
         )
 
     def log_tenant_isolation_violation(self, user_id: str = None, user_tenant: str = None, target_tenant: str = None, resource: str = None):

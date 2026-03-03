@@ -224,11 +224,53 @@ class SecurityLogger:
             reason=reason,
         )
 
-    def unauthorized_access(self, user_id: str, resource: str):
+    def unauthorized_access(self, user_id: str, resource: str, action: str = None):
         self.log.warning(
             "unauthorized_access",
             event_type="UNAUTHORIZED_ACCESS",
             user_id=user_id,
+            resource=resource,
+            action=action,
+        )
+
+    # Alias methods for test compatibility
+    def log_login_success(self, user_id: str, tenant_id: str = None, ip: str = None):
+        self.login_success(user_id, tenant_id or "", ip or "")
+
+    def log_login_failure(self, email: str, ip: str = None, reason: str = None):
+        self.login_failure(email, ip or "", reason or "unknown")
+
+    def log_token_refresh(self, user_id: str, tenant_id: str = None):
+        self.log.info(
+            "token_refresh",
+            event_type="TOKEN_REFRESH",
+            user_id=user_id,
+            tenant_id=tenant_id,
+        )
+
+    def log_logout(self, user_id: str, tenant_id: str = None):
+        self.log.info(
+            "logout",
+            event_type="LOGOUT",
+            user_id=user_id,
+            tenant_id=tenant_id,
+        )
+
+    def log_token_invalid(self, user_id: str = None, reason: str = None):
+        self.log.warning(
+            "token_invalid",
+            event_type="TOKEN_INVALID",
+            user_id=user_id,
+            reason=reason,
+        )
+
+    def log_tenant_isolation_violation(self, user_id: str = None, user_tenant: str = None, target_tenant: str = None, resource: str = None):
+        self.log.warning(
+            "tenant_isolation_violation",
+            event_type="TENANT_ISOLATION_VIOLATION",
+            user_id=user_id,
+            user_tenant=user_tenant,
+            target_tenant=target_tenant,
             resource=resource,
         )
 
@@ -258,6 +300,20 @@ class AuditLogger:
             actor_id=actor_id,
             target_user_id=target_user_id,
         )
+
+    def user_modified(self, actor_id: str, target_user_id: str, tenant_id: str = None, changes: dict = None):
+        self.log.info(
+            "user_modified",
+            event_type="USER_MODIFIED",
+            actor_id=actor_id,
+            target_user_id=target_user_id,
+            tenant_id=tenant_id,
+            changes=changes or {},
+        )
+
+    # Alias method for test compatibility
+    def log_user_modified(self, actor_id: str, target_user_id: str, tenant_id: str = None, changes: dict = None):
+        self.user_modified(actor_id, target_user_id, tenant_id, changes)
 
 
 # ==============================

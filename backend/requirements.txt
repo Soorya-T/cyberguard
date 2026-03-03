@@ -43,6 +43,13 @@ email-validator==2.1.1    # Email validation for Pydantic
 structlog==24.1.0         # Structured logging (optional enhancement)
 
 # -------------------------------
+# Pod B - ML & Parsing
+# -------------------------------
+beautifulsoup4==4.12.3    # HTML/XML parsing for email content
+joblib==1.4.0             # ML model serialization
+scikit-learn==1.4.0       # ML library (provides joblib)
+
+# -------------------------------
 # Development & Testing
 # -------------------------------
 pytest==8.1.1             # Testing framework

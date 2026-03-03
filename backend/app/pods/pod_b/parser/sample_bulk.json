@@ -1,0 +1,152 @@
+[
+  {
+    "time": "2026-02-22T09:00:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.10"},
+    "email": {
+      "sender": "attacker@evil.com",
+      "subject": "Urgent Action Required",
+      "body": "Click here http://malicious-site.com to verify immediately.",
+      "attachments": [{"filename": "invoice.pdf.exe"}]
+    }
+  },
+  {
+    "time": "2026-02-22T09:05:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.11"},
+    "email": {
+      "sender": "support@paypal-secure.com",
+      "subject": "Account Suspended - Immediate Action Needed",
+      "body": "Your account is suspended. Login here http://paypa1-login.com",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:10:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.12"},
+    "email": {
+      "sender": "hr@company.com",
+      "subject": "Updated Leave Policy",
+      "body": "Please review the updated leave policy document attached.",
+      "attachments": [{"filename": "leave_policy.pdf"}]
+    }
+  },
+  {
+    "time": "2026-02-22T09:15:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.13"},
+    "email": {
+      "sender": "admin@microsoft-support.org",
+      "subject": "Password Expiry Notice",
+      "body": "Your password expires today. Reset at http://micr0soft-reset.com",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:20:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.14"},
+    "email": {
+      "sender": "ceo@company.com",
+      "subject": "Confidential Request",
+      "body": "Are you available? I need you to urgently process a wire transfer.",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:25:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.15"},
+    "email": {
+      "sender": "alerts@amazon.com",
+      "subject": "New Login from Chrome Browser",
+      "body": "We detected a login from Chennai. If this was you, ignore.",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:30:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.16"},
+    "email": {
+      "sender": "security@paypaI.com",
+      "subject": "Security Alert",
+      "body": "Unusual activity detected. Verify at http://secure-paypai.com",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:35:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.17"},
+    "email": {
+      "sender": "billing@netflix.com",
+      "subject": "Payment Failed",
+      "body": "Your subscription payment failed. Update at https://netflix.com",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:40:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.18"},
+    "email": {
+      "sender": "it-helpdesk@company-support.com",
+      "subject": "Immediate System Upgrade",
+      "body": "Download the patch attached and install immediately.",
+      "attachments": [{"filename": "system_update.scr"}]
+    }
+  },
+  {
+    "time": "2026-02-22T09:45:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.19"},
+    "email": {
+      "sender": "newsletter@linkedin.com",
+      "subject": "Your Weekly Network Update",
+      "body": "See who viewed your profile this week.",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:50:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.20"},
+    "email": {
+      "sender": "admin@goog1e.com",
+      "subject": "Verify Suspicious Activity",
+      "body": "Your Google account was accessed. Confirm at http://goog1e-security.com",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T09:55:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.21"},
+    "email": {
+      "sender": "finance@company.com",
+      "subject": "Invoice Q4",
+      "body": "Attached is the invoice for Q4.",
+      "attachments": [{"filename": "invoice_q4.xlsx"}]
+    }
+  },
+  {
+    "time": "2026-02-22T10:00:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.22"},
+    "email": {
+      "sender": "support@dropbox.com",
+      "subject": "Shared Document",
+      "body": "You have a new shared document: http://dropbox-docs.com",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T10:05:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.23"},
+    "email": {
+      "sender": "noreply@bank-secure-alerts.net",
+      "subject": "Urgent: Account Locked",
+      "body": "Your bank account is locked. Unlock at http://bank-login-alert.net",
+      "attachments": []
+    }
+  },
+  {
+    "time": "2026-02-22T10:10:00+00:00",
+    "src_endpoint": {"ip": "192.168.1.24"},
+    "email": {
+      "sender": "team@company.com",
+      "subject": "Project Meeting Notes",
+      "body": "Attached are the meeting notes from today.",
+      "attachments": [{"filename": "meeting_notes.docx"}]
+    }
+  }
+]

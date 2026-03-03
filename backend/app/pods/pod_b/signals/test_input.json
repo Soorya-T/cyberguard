@@ -1,0 +1,4 @@
+{
+  "tenant_id": "tenant1",
+  "raw_email": "From: support@paypal.xyz\nReply-To: attacker@gmail.com\nTo: victim@example.com\nSubject: URGENT: Final Warning - Verify Now\n\nThis is your final warning. Your account will be suspended within 24 hours.\nAction required immediately to avoid suspension.\n\nClick below:\nhttp://192.168.1.10/login\nhttps://bit.ly/reset\nhttp://secure-update.top/verify?password=1234\n"
+}

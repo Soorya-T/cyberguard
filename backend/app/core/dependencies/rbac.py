@@ -101,7 +101,7 @@ def require_role(*allowed_roles: Role) -> Callable:
     ) -> User:
         # Check if user's role is in allowed roles
         if current_user.role not in allowed_roles:
-            security_logger.log_unauthorized_access(
+            security_logger.unauthorized_access(
                 user_id=str(current_user.id),
                 resource=request.url.path,
                 action=request.method,
@@ -148,7 +148,7 @@ def require_role_or_higher(minimum_role: Role) -> Callable:
         current_user: User = Depends(get_current_user),
     ) -> User:
         if not has_role_or_higher(current_user.role, minimum_role):
-            security_logger.log_unauthorized_access(
+            security_logger.unauthorized_access(
                 user_id=str(current_user.id),
                 resource=request.url.path,
                 action=request.method,
@@ -197,7 +197,7 @@ def require_super_admin(
         HTTPException: If user is not a super admin
     """
     if current_user.role != Role.SUPER_ADMIN:
-        security_logger.log_unauthorized_access(
+        security_logger.unauthorized_access(
             user_id=str(current_user.id),
             resource=request.url.path,
             action=request.method,
@@ -233,7 +233,7 @@ def require_org_admin(
         HTTPException: If user is not an org admin or higher
     """
     if current_user.role not in (Role.ORG_ADMIN, Role.SUPER_ADMIN):
-        security_logger.log_unauthorized_access(
+        security_logger.unauthorized_access(
             user_id=str(current_user.id),
             resource=request.url.path,
             action=request.method,
@@ -269,7 +269,7 @@ def require_analyst(
         HTTPException: If user is not an analyst or higher
     """
     if not has_role_or_higher(current_user.role, Role.SECURITY_ANALYST):
-        security_logger.log_unauthorized_access(
+        security_logger.unauthorized_access(
             user_id=str(current_user.id),
             resource=request.url.path,
             action=request.method,
@@ -319,7 +319,7 @@ def require_resource_owner_or_admin(
     
     # Regular users can only access their own resources
     if current_user.id != resource_user_id:
-        security_logger.log_unauthorized_access(
+        security_logger.unauthorized_access(
             user_id=str(current_user.id),
             resource=str(resource_user_id),
             action=request.method,

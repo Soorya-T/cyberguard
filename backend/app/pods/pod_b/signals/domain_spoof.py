@@ -202,9 +202,9 @@ class DomainSpoofSignal(BaseSignal):
             settings: Optional settings override
         """
         super().__init__(settings)
-        self.threshold = self.settings.domain_spoof_similarity_threshold
-        self.trusted_brands = self.settings.trusted_brands
-        self.base_score = self.settings.domain_spoof_score
+        self.threshold = getattr(self.settings, 'DOMAIN_SPOOF_SIMILARITY_THRESHOLD', 0.8)
+        self.trusted_brands = getattr(self.settings, 'TRUSTED_BRANDS', ['microsoft', 'google', 'apple', 'amazon', 'paypal', 'facebook'])
+        self.base_score = getattr(self.settings, 'DOMAIN_SPOOF_SCORE', 30)
     
     def analyze(self, email: ParsedEmail) -> SignalResult:
         """

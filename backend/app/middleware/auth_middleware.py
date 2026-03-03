@@ -348,7 +348,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     headers={"Retry-After": "60"}
                 )
         
-        return await call_next(request)
+        try:
+            response = await call_next(request)
+            return response
+        except Exception as e:
+            logger.error(
+                "Rate limit middleware error",
+                exc_info=True,
+                extra={"path": request.url.path}
+            )
+            return await call_next(request)
     
     def _is_rate_limited(
         self,

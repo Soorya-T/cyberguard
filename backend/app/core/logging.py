@@ -206,13 +206,14 @@ class SecurityLogger:
     def __init__(self):
         self.log = get_logger("cyberguard.security")
 
-    def login_success(self, user_id: str, tenant_id: str, ip: str):
+    def login_success(self, user_id: str, tenant_id: str, ip: str, user_agent: str = None):
         self.log.info(
             "login_success",
             event_type="LOGIN_SUCCESS",
             user_id=user_id,
             tenant_id=tenant_id,
             ip_address=ip,
+            user_agent=user_agent,
         )
 
     def login_failure(self, email: str, ip: str, reason: str):
@@ -234,8 +235,8 @@ class SecurityLogger:
         )
 
     # Alias methods for test compatibility
-    def log_login_success(self, user_id: str, tenant_id: str = None, ip: str = None, ip_address: str = None):
-        self.login_success(user_id, tenant_id or "", ip or ip_address or "")
+    def log_login_success(self, user_id: str, tenant_id: str = None, ip: str = None, ip_address: str = None, user_agent: str = None):
+        self.login_success(user_id, tenant_id or "", ip or ip_address or "", user_agent)
 
     def log_login_failure(self, email: str, ip: str = None, reason: str = None, ip_address: str = None):
         self.login_failure(email, ip or ip_address or "", reason or "unknown")

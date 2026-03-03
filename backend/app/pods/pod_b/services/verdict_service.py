@@ -1,6 +1,8 @@
 from typing import Dict, List
 from ..parser.email_parser import parse_email
 from app.pods.pod_b.signals.signal_engine import SignalOrchestrator, from_ocsf
+import hashlib
+import json
 
 
 # In-memory idempotency protection (temporary until DB layer)
@@ -10,7 +12,8 @@ class VerdictService:
 
     def analyze(self, email_data: Dict) -> Dict:
 
-        event_id = email_data["email_id"]
+        # Generate event_id if not provided
+        event_id = email_data.get("email_id") or self._generate_event_id(email_data)
 
         # -------- Idempotency --------
         if event_id in PROCESSED_EVENTS:
@@ -62,6 +65,17 @@ class VerdictService:
         for s in result.signals:
             print("Signal:", s.signal, "Score:", s.score)
         return verdict
+
+    def _generate_event_id(self, email_data: Dict) -> str:
+        """Generate a deterministic event_id from email data fields."""
+        # Use sender, subject, body to create a unique hash
+        key_parts = [
+            email_data.get("sender", ""),
+            email_data.get("subject", ""),
+            email_data.get("body", "")
+        ]
+        key_string = "|".join(key_parts)
+        return hashlib.sha256(key_string.encode()).hexdigest()[:16]
 
 
 # ------------------------------------------------------

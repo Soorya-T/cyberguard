@@ -62,9 +62,9 @@ class ScoringEngine:
             settings: Optional settings override
         """
         self.settings = settings or get_settings()
-        self.phishing_threshold = self.settings.phishing_threshold
-        self.suspicious_threshold = self.settings.suspicious_threshold
-        self.max_score = self.settings.max_total_score
+        self.phishing_threshold = self.settings.PHISHING_THRESHOLD
+        self.suspicious_threshold = self.settings.SUSPICIOUS_THRESHOLD
+        self.max_score = self.settings.MAX_TOTAL_SCORE
     
     def calculate_total_score(self, signal_results: List[SignalResult]) -> int:
         """
@@ -321,7 +321,7 @@ class SignalOrchestrator:
         start_time = time.perf_counter()
         
         if parallel is None:
-            parallel = self.settings.enable_parallel_signals
+            parallel = False  # Default to sequential processing
         
         # Run signals
         if parallel:
@@ -375,7 +375,7 @@ class SignalOrchestrator:
             signals=signal_results,
             scan_duration_ms=round(duration_ms, 2),
             scanned_at=datetime.now(timezone.utc),
-            version=self.settings.app_version,
+            version="1.0.0",  # Version placeholder
 )
 
 
@@ -546,26 +546,38 @@ def generate_email_hash(sender, subject, timestamp):
     return hashlib.sha256(raw_string.encode("utf-8")).hexdigest()
 
 def from_ocsf(data: dict) -> ParsedEmail:
+    import uuid
 
     email_block = data.get("email", {})
+    
+    # If email block is empty, check for legacy top-level fields
+    if not email_block:
+        email_block = {
+            "sender": data.get("sender"),
+            "subject": data.get("subject", ""),
+            "body": data.get("body", ""),
+            "attachments": data.get("attachments", []),
+            "headers": {}
+        }
 
-    sender_email = email_block.get("sender")
+    sender_email = email_block.get("sender") or data.get("sender")
     sender_domain = None
 
-    if sender_email and "@" in sender_email:
+    if sender_email and isinstance(sender_email, str) and "@" in sender_email:
         sender_domain = sender_email.split("@")[-1]
 
-    subject = email_block.get("subject", "")
+    subject = email_block.get("subject", "") or data.get("subject", "")
+    body = email_block.get("body", "") or data.get("body", "")
     timestamp = data.get("time", "")
 
-    raw_string = f"{sender_email}|{subject}|{timestamp}"
+    raw_string = f"{sender_email or ''}|{subject}|{timestamp}"
     email_hash = hashlib.sha256(
         raw_string.encode("utf-8")
     ).hexdigest()
 
     return ParsedEmail(
-        email_id=data.get("email_id"),
-        tenant_id=data.get("tenant_id"),
+        email_id=data.get("email_id") or str(uuid.uuid4()),
+        tenant_id=data.get("tenant_id") or "default",
         email_hash=email_hash,
 
         sender_email=sender_email,
@@ -573,10 +585,10 @@ def from_ocsf(data: dict) -> ParsedEmail:
         reply_to=email_block.get("headers", {}).get("reply_to"),
 
         subject=subject,
-        body_text=email_block.get("body", ""),
+        body_text=body,
         body_html=None,
 
-        links=[],
+        links=data.get("links", []),
         attachments=email_block.get("attachments", []),
 
         received_at=datetime.now(timezone.utc),

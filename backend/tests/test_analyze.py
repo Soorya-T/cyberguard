@@ -10,7 +10,7 @@ client = TestClient(app)
 # ----------------------------
 
 def test_analyze_email_success():
-    response = client.post("/analyze", json={
+    response = client.post("/api/v1/analyze", json={
         "sender": "attacker@fake-bank.com",
         "subject": "URGENT: Verify your account",
         "body": "Click here immediately to verify your bank account.",
@@ -37,7 +37,7 @@ def test_analyze_email_success():
 # ----------------------------
 
 def test_analyze_invalid_payload():
-    response = client.post("/analyze", json={
+    response = client.post("/api/v1/analyze", json={
         "sender": "test@email.com",
         "subject": "Test",
         "body": "Test body",
@@ -52,7 +52,7 @@ def test_analyze_invalid_payload():
 # ----------------------------
 
 def test_analyze_missing_required_field():
-    response = client.post("/analyze", json={
+    response = client.post("/api/v1/analyze", json={
         "sender": "test@email.com",
         "subject": "Missing body"
     })
@@ -65,7 +65,7 @@ def test_analyze_missing_required_field():
 # ----------------------------
 
 def test_analyze_empty_body():
-    response = client.post("/analyze", json={
+    response = client.post("/api/v1/analyze", json={
         "sender": "test@email.com",
         "subject": "Empty Body Test",
         "body": ""

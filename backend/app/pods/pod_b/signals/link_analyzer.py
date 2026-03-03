@@ -170,10 +170,10 @@ class LinkAnalyzerSignal(BaseSignal):
             settings: Optional settings override
         """
         super().__init__(settings)
-        self.suspicious_tlds = set(self.settings.suspicious_tlds)
-        self.base_score = self.settings.suspicious_tld_base_score
-        self.per_domain_score = self.settings.suspicious_tld_per_domain_score
-        self.max_score = self.settings.suspicious_tld_max_score
+        self.suspicious_tlds = set(self.settings.SUSPICIOUS_TLDS)
+        self.base_score = self.settings.SUSPICIOUS_TLD_BASE_SCORE
+        self.per_domain_score = getattr(self.settings, 'suspicious_tld_per_domain_score', 5)
+        self.max_score = getattr(self.settings, 'suspicious_tld_max_score', 30)
     
     def analyze(self, email: ParsedEmail) -> SignalResult:
         """

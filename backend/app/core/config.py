@@ -126,6 +126,17 @@ class Settings(BaseSettings):
     MEDIUM_RISK_EXTENSIONS: str = Field(
         default="zip,rar,7z,docm,xlsm,pptm,doc,docx,xls,xlsx,ppt,pptx"
     )
+    
+    # Additional Pod B settings referenced by signals
+    URGENCY_MAX_SCORE: int = Field(default=15, ge=0, le=100)
+    REPLY_MISMATCH_SCORE: int = Field(default=25, ge=0, le=100)
+    SUSPICIOUS_TLD_BASE_SCORE: int = Field(default=20, ge=0, le=100)
+    DOMAIN_SPOOF_SIMILARITY_THRESHOLD: float = Field(default=0.85, ge=0.0, le=1.0)
+    DOMAIN_SPOOF_SCORE: int = Field(default=30, ge=0, le=100)
+    DOUBLE_EXTENSION_SCORE: int = Field(default=25, ge=0, le=100)
+    HIGH_RISK_EXTENSION_SCORE: int = Field(default=30, ge=0, le=100)
+    MEDIUM_RISK_EXTENSION_SCORE: int = Field(default=15, ge=0, le=100)
+    ATTACHMENT_MAX_SCORE: int = Field(default=40, ge=0, le=100)
 
     # =========================================================================
     # VALIDATORS

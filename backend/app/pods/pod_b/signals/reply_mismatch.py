@@ -178,8 +178,8 @@ class ReplyMismatchSignal(BaseSignal):
             settings: Optional settings override
         """
         super().__init__(settings)
-        self.mismatch_score = self.settings.reply_mismatch_score
-        self.trusted_brands = self.settings.trusted_brands
+        self.mismatch_score = getattr(self.settings, 'REPLY_MISMATCH_SCORE', 25)
+        self.trusted_brands = getattr(self.settings, 'TRUSTED_BRANDS', ['microsoft', 'google', 'apple', 'amazon', 'paypal', 'facebook'])
     
     def analyze(self, email: ParsedEmail) -> SignalResult:
         """

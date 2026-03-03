@@ -129,10 +129,10 @@ class UrgencyDetectorSignal(BaseSignal):
             settings: Optional settings override
         """
         super().__init__(settings)
-        self.base_score = self.settings.urgency_base_score
-        self.per_keyword_score = self.settings.urgency_per_keyword_score
-        self.max_score = self.settings.urgency_max_score
-        self.keywords = self.settings.urgency_keywords
+        self.base_score = getattr(self.settings, 'urgency_base_score', 10)
+        self.per_keyword_score = getattr(self.settings, 'urgency_per_keyword_score', 5)
+        self.max_score = getattr(self.settings, 'URGENCY_MAX_SCORE', 30)
+        self.keywords = getattr(self.settings, 'URGENCY_KEYWORDS', ['urgent', 'immediately', 'verify', 'suspend', 'lock', 'unauthorized'])
         
         # Compile patterns for efficient matching
         self._compiled_patterns = compile_patterns(URGENCY_PATTERNS)

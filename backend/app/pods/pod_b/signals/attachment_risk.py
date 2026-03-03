@@ -183,12 +183,12 @@ class AttachmentRiskSignal(BaseSignal):
             settings: Optional settings override
         """
         super().__init__(settings)
-        self.high_risk_extensions = set(self.settings.high_risk_extensions)
-        self.medium_risk_extensions = set(self.settings.medium_risk_extensions)
-        self.double_extension_score = self.settings.double_extension_score
-        self.high_risk_score = self.settings.high_risk_extension_score
-        self.medium_risk_score = self.settings.medium_risk_extension_score
-        self.max_score = self.settings.attachment_max_score
+        self.high_risk_extensions = set(getattr(self.settings, 'HIGH_RISK_EXTENSIONS', ['exe', 'scr', 'bat', 'cmd', 'vbs', 'js', 'jar', 'wsf', 'ps1']))
+        self.medium_risk_extensions = set(getattr(self.settings, 'MEDIUM_RISK_EXTENSIONS', ['zip', 'rar', '7z', 'tar', 'gz']))
+        self.double_extension_score = getattr(self.settings, 'DOUBLE_EXTENSION_SCORE', 25)
+        self.high_risk_score = getattr(self.settings, 'HIGH_RISK_EXTENSION_SCORE', 30)
+        self.medium_risk_score = getattr(self.settings, 'MEDIUM_RISK_EXTENSION_SCORE', 15)
+        self.max_score = getattr(self.settings, 'ATTACHMENT_MAX_SCORE', 50)
     
     def analyze(self, email: ParsedEmail) -> SignalResult:
         """

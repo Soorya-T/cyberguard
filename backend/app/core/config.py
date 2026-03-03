@@ -172,12 +172,20 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
+    def cors_methods_list(self) -> List[str]:
+        return [m.strip() for m in self.CORS_ALLOW_METHODS.split(",") if m.strip()]
+
+    @property
+    def cors_headers_list(self) -> List[str]:
+        return [h.strip() for h in self.CORS_ALLOW_HEADERS.split(",") if h.strip()]
+
+    @property
     def urgency_keywords(self) -> List[str]:
         return [k.strip() for k in self.URGENCY_KEYWORDS.split(",") if k.strip()]
 
     @property
     def trusted_brands(self) -> set[str]:
-        return {b.strip().lower() for b in self.TRUSTED_BRANDS.split(",") if b.strip()]
+        return {b.strip().lower() for b in self.TRUSTED_BRANDS.split(",") if b.strip()}
 
     model_config = SettingsConfigDict(
         env_file=".env",

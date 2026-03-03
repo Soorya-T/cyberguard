@@ -1,0 +1,433 @@
+/* Professional global CSS (no Tailwind) */
+
+:root {
+  --bg: #0b1220;
+  --bg2: #0f1b33;
+  --card: rgba(255, 255, 255, 0.06);
+  --card2: rgba(255, 255, 255, 0.08);
+  --text: #e8eefc;
+  --muted: rgba(232, 238, 252, 0.72);
+  --border: rgba(255, 255, 255, 0.12);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  --primary: #7c3aed;
+  --primary2: #22c55e;  
+  --danger: #ef4444;
+  --warn: #f59e0b;
+  --info: #3b82f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: radial-gradient(1200px 800px at 20% 10%, #1a2b55 0%, transparent 55%),
+              radial-gradient(900px 700px at 80% 20%, #3b1a55 0%, transparent 55%),
+              linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+  min-height: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.page {
+  min-height: 100vh;
+}
+
+.shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 26px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 30% 30%, #60a5fa, #7c3aed);
+  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.35);
+}
+
+.brandTitle {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brandTitle strong {
+  font-size: 15px;
+}
+
+.brandTitle span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.navlinks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pillLink {
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  color: var(--muted);
+}
+.pillLink:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+  text-decoration: none;
+}
+
+.hero {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--card2), var(--card));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.cardPad {
+  padding: 22px;
+}
+
+.h1 {
+  font-size: 44px;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.sub {
+  margin: 10px 0 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 14px;
+  max-width: 58ch;
+}
+
+.actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--primary), #2563eb);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+}
+.btnPrimary:hover {
+  text-decoration: none;
+  filter: brightness(1.05);
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+}
+.btnGhost:hover {
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+@media (max-width: 700px) {
+  .kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 14px;
+}
+.kpiLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+.kpiValue {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sectionTitle {
+  margin: 18px 0 10px 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.input,
+.select {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  outline: none;
+  font-size: 13px;
+}
+
+.tableWrap {
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 860px;
+}
+
+thead th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody td {
+  padding: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(232, 238, 252, 0.9);
+}
+
+tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badgeCritical {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+}
+.badgeHigh {
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.12);
+}
+.badgeMedium {
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #bfdbfe;
+  background: rgba(59, 130, 246, 0.12);
+}
+.badgeLow {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.12);
+}
+.badgeUnknown {
+  border-color: rgba(148, 163, 184, 0.35);
+  color: rgba(232, 238, 252, 0.75);
+  background: rgba(148, 163, 184, 0.10);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.right {
+  text-align: right;
+}
+
+.notice {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.10);
+  color: #fecaca;
+  font-size: 13px;
+}
+
+.small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.grid2 {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+pre {
+  margin: 10px 0 0 0;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(232, 238, 252, 0.9);
+  overflow: auto;
+  font-size: 12px;
+}
+/* ✅ Dropdown + option contrast fix (global, works in dark UI) */
+select {
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+}
+
+select option {
+  background: #0b1220; /* deep navy */
+  color: #e8eefc;      /* readable light text */
+}
+/* =========================
+   ✅ Severity Badge Colors
+   ========================= */
+
+.sevBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* CRITICAL - Red */
+.sevCritical {
+  border-color: rgba(239, 68, 68, 0.55);
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.16);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.10) inset;
+}
+
+/* HIGH - Orange */
+.sevHigh {
+  border-color: rgba(245, 158, 11, 0.55);
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.16);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.10) inset;
+}
+
+/* MEDIUM - Blue */
+.sevMedium {
+  border-color: rgba(59, 130, 246, 0.55);
+  color: #bfdbfe;
+  background: rgba(59, 130, 246, 0.16);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.10) inset;
+}
+
+/* LOW - Green */
+.sevLow {
+  border-color: rgba(34, 197, 94, 0.55);
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.16);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.10) inset;
+}
+
+/* UNKNOWN - Gray */
+.sevUnknown {
+  border-color: rgba(148, 163, 184, 0.50);
+  color: rgba(232, 238, 252, 0.78);
+  background: rgba(148, 163, 184, 0.14);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.08) inset;
+}

@@ -1,36 +1,42 @@
 """
 Main Application Entry Point
 ============================
-Merged: Pod A + Pod B
+Integrated: Pod A + Pod B + Pod C
+Production-safe version (Alembic compliant)
 """
 
-import asyncio
 from contextlib import asynccontextmanager
-from typing import Callable
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy import delete
 
 from app.core.config import settings
 from app.core.exceptions import CyberGuardException
 from app.core.logging import get_logger
 from app.db.session import check_database_connection
 
-# Import models for Alembic detection
+# Alembic model discovery
 from app.models import user, organization
+from app.models.analysis_model import AnalysisRecord
 
-# Import routers (Pod A)
+# Pod A Routers
 from app.routes import auth_routes, admin_routes
 from app.routes.ingestion_routes import router as ingestion_router
 from app.api.incidents import router as incidents_router
 from app.api.routes.metrics import router as metrics_router
 
-# 🔥 Import Pod B router
+# Pod B Router
 from app.api.routes.analyze import router as analyze_router
 
-# Import middleware
+# Pod C Services
+from app.schemas.email_schema import EmailAnalysisResponse, EmailInput
+from app.services.email_analysis_service import get_email_analysis_service
+from app.core.database import SessionLocal
+
+# Middleware
 from app.middleware.auth_middleware import (
     AuthMiddleware,
     SecurityHeadersMiddleware,
@@ -38,7 +44,6 @@ from app.middleware.auth_middleware import (
 )
 
 logger = get_logger(__name__)
-
 
 # =====================================
 # Lifespan
@@ -53,7 +58,7 @@ async def lifespan(app: FastAPI):
             "app_name": settings.APP_NAME,
             "version": settings.APP_VERSION,
             "environment": settings.ENVIRONMENT,
-        }
+        },
     )
 
     if not check_database_connection():
@@ -68,12 +73,18 @@ async def lifespan(app: FastAPI):
 
 
 # =====================================
-# App Initialization
+# FastAPI Initialization
 # =====================================
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="CyberGuard Integrated Backend (Pod A + Pod B)",
+    description="""
+    CyberGuard Integrated Security Platform
+
+    - Pod A: Core Platform (RBAC, Multi-tenant, Metrics, Incidents)
+    - Pod B: Threat Analysis Engine
+    - Pod C: Email Threat Intelligence & Persistence
+    """,
     version=settings.APP_VERSION,
     lifespan=lifespan,
     docs_url="/docs" if settings.DEBUG else None,
@@ -81,9 +92,8 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.DEBUG else None,
 )
 
-
 # =====================================
-# CORS
+# CORS (Centralized)
 # =====================================
 
 app.add_middleware(
@@ -96,13 +106,12 @@ app.add_middleware(
 )
 
 # =====================================
-# Custom Middleware
+# Middleware Stack
 # =====================================
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware)
-
 
 # =====================================
 # Exception Handlers
@@ -132,50 +141,159 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled exception", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "message": "Internal Server Error" if settings.ENVIRONMENT == "production" else str(exc)
-        },
+        content={"message": "Internal Server Error"},
     )
 
-
 # =====================================
-# Register Routers
+# Register Routers (Pod A + Pod B)
 # =====================================
 
-# Pod A
 app.include_router(auth_routes.router)
 app.include_router(admin_routes.router)
 
 app.include_router(
     ingestion_router,
     prefix="/api/v1",
-    tags=["Ingestion"]
+    tags=["Ingestion"],
 )
 
 app.include_router(
     incidents_router,
     prefix="/api/v1",
-    tags=["Incidents"]
+    tags=["Incidents"],
 )
 
 app.include_router(
     metrics_router,
     prefix="/api/v1",
-    tags=["Metrics"]
+    tags=["Metrics"],
 )
 
-# 🔥 Pod B
 app.include_router(
     analyze_router,
     prefix="/api/v1",
-    tags=["Threat Analysis"]
+    tags=["Threat Analysis"],
 )
 
+# =====================================
+# Pod C - Email Intelligence (Namespaced)
+# =====================================
+
+@app.post(
+    "/api/v1/email/analyze",
+    response_model=EmailAnalysisResponse,
+    tags=["Email Intelligence"],
+)
+def analyze_email(data: EmailInput) -> EmailAnalysisResponse:
+
+    service = get_email_analysis_service()
+    response = service.analyze(data)
+
+    verdict = "Unknown"
+    severity = "UNKNOWN"
+
+    if response.report and isinstance(response.report, dict):
+        verdict = response.report.get("verdict", verdict)
+        severity = response.report.get("severity", severity)
+
+    db = SessionLocal()
+    try:
+        record = AnalysisRecord(
+            sender=data.sender,
+            subject=data.subject,
+            risk_score=response.risk_score,
+            verdict=verdict,
+            pdf_location=response.pdf_location,
+        )
+
+        if hasattr(record, "severity"):
+            setattr(record, "severity", severity)
+
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+
+    finally:
+        db.close()
+
+    return response
+
+
+@app.get(
+    "/api/v1/email/reports/history",
+    tags=["Email Intelligence"],
+)
+def get_report_history():
+    db = SessionLocal()
+    try:
+        return db.query(AnalysisRecord).order_by(AnalysisRecord.id.desc()).all()
+    finally:
+        db.close()
+
+
+@app.get(
+    "/api/v1/email/reports/{report_id}",
+    tags=["Email Intelligence"],
+)
+def get_single_report(report_id: int):
+    db = SessionLocal()
+    try:
+        record = (
+            db.query(AnalysisRecord)
+            .filter(AnalysisRecord.id == report_id)
+            .first()
+        )
+
+        if not record:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        return record
+    finally:
+        db.close()
+
+
+@app.delete(
+    "/api/v1/email/reports/clear",
+    tags=["Email Intelligence"],
+)
+def clear_reports():
+    db = SessionLocal()
+    try:
+        result = db.execute(delete(AnalysisRecord))
+        db.commit()
+        return {"status": "ok", "deleted": result.rowcount or 0}
+    finally:
+        db.close()
+
+
+@app.delete(
+    "/api/v1/email/reports/{report_id}",
+    tags=["Email Intelligence"],
+)
+def delete_report(report_id: int):
+    db = SessionLocal()
+    try:
+        record = (
+            db.query(AnalysisRecord)
+            .filter(AnalysisRecord.id == report_id)
+            .first()
+        )
+
+        if not record:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        db.delete(record)
+        db.commit()
+
+        return {"status": "ok", "deleted_id": report_id}
+    finally:
+        db.close()
 
 # =====================================
-# Health
+# Health Endpoints
 # =====================================
 
 @app.get("/")
@@ -184,17 +302,22 @@ def health_check():
         "status": "healthy",
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "environment": settings.ENVIRONMENT,
     }
 
 
 @app.get("/health")
 def detailed_health_check():
     db_healthy = check_database_connection()
-
     return {
         "status": "healthy" if db_healthy else "degraded",
-        "checks": {
-            "database": "healthy" if db_healthy else "unhealthy",
-        },
     }
+
+
+@app.get("/health/pod-b")
+def pod_b_health():
+    return {"status": "healthy", "service": "pod_b"}
+
+
+@app.get("/health/pod-c")
+def pod_c_health():
+    return {"status": "healthy", "service": "pod_c"}

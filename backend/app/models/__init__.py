@@ -13,9 +13,11 @@ Usage:
 from .user import User
 from .organization import Organization
 from .role_enum import Role
+from .analysis_model import AnalysisRecord
 
 __all__ = [
     "User",
     "Organization",
     "Role",
+    "AnalysisRecord",
 ]

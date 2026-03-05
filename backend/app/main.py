@@ -264,6 +264,46 @@ def get_reports_history():
 
 
 @app.get(
+    "/api/v1/reports/history",
+    tags=["Reports"],
+)
+def get_reports_history_api():
+    """API endpoint for report history with /api/v1 prefix."""
+    db = SessionLocal()
+    try:
+        return db.query(AnalysisRecord).order_by(AnalysisRecord.id.desc()).all()
+    except Exception:
+        return []
+    finally:
+        db.close()
+
+
+@app.delete(
+    "/reports/{report_id}",
+    tags=["Reports"],
+)
+def delete_report_legacy(report_id: int):
+    """Delete a report by ID - legacy endpoint without /api/v1 prefix."""
+    db = SessionLocal()
+    try:
+        record = (
+            db.query(AnalysisRecord)
+            .filter(AnalysisRecord.id == report_id)
+            .first()
+        )
+
+        if not record:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        db.delete(record)
+        db.commit()
+
+        return {"status": "ok", "deleted_id": report_id}
+    finally:
+        db.close()
+
+
+@app.get(
     "/api/v1/email/reports/{report_id}",
     tags=["Email Intelligence"],
 )
